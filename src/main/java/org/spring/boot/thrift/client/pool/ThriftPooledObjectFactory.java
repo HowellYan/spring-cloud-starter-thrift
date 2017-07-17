@@ -21,8 +21,8 @@ import org.springframework.core.env.PropertyResolver;
  */
 public class ThriftPooledObjectFactory extends BaseKeyedPooledObjectFactory<ThriftKey, TServiceClient> {
 
-    private static final int DEFAULT_CONNECTION_TIMEOUT = 1000;
-    private static final int DEFAULT_READ_TIMEOUT = 30000;
+    private static final int DEFAULT_CONNECTION_TIMEOUT = 60000;
+    private static final int DEFAULT_READ_TIMEOUT = 60000;
     private static final int DEFAULT_MAX_RETRIES = 1;
 
     private TProtocolFactory protocolFactory;
