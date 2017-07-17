@@ -1,5 +1,6 @@
 package org.spring.boot.thrift.client;
 
+import com.fasterxml.jackson.databind.util.BeanUtil;
 import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixCommandKey;
@@ -19,6 +20,7 @@ import org.springframework.beans.InvalidPropertyException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.cglib.beans.BeanMap;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.ReflectionUtils;
 
@@ -29,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * Created by Howell on 17/1/11.
@@ -129,6 +132,10 @@ public class ThriftClientAnnotationBeanPostProcessor implements BeanPostProcesso
             ThriftKey key = new ThriftKey(declaringClass);
             key.setServiceName(annotation.serviceId());
             key.setPath(annotation.path());
+
+            for (Object arg: args) {
+                Logger.getLogger(this.getClass().getName()).info("Service require parameter :" + BeanMap.create(arg).toString());
+            }
 
             TServiceClient thriftClient = null;
             try {

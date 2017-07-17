@@ -135,6 +135,7 @@ public class TLoadBalancerClient extends TTransport {
         if (serviceInstance == null) {
             throw new TTransportException(TTransportException.NOT_OPEN, "No service instances available");
         }
+
         Logger.getLogger(this.getClass().getName()).info("Service URI:" + serviceInstance.getUri().toString());
 
         HttpURLConnection iox = (HttpURLConnection) new URL(serviceInstance.getUri().toString() + path).openConnection();
