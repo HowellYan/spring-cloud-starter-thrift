@@ -13,6 +13,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * 参照THttpClient,支持从注册中心获取服务列表，并根据既定的策略进行负载均衡,利用LoadBalancerClient
@@ -134,6 +135,7 @@ public class TLoadBalancerClient extends TTransport {
         if (serviceInstance == null) {
             throw new TTransportException(TTransportException.NOT_OPEN, "No service instances available");
         }
+        Logger.getLogger(this.getClass().getName()).info("Service URI:" + serviceInstance.getUri().toString());
 
         HttpURLConnection iox = (HttpURLConnection) new URL(serviceInstance.getUri().toString() + path).openConnection();
         if (this.connectTimeout_ > 0) {
