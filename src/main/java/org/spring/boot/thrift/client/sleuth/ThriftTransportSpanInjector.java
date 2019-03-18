@@ -1,49 +1,51 @@
 package org.spring.boot.thrift.client.sleuth;
 
+import brave.propagation.Propagation;
+import brave.propagation.TraceContext;
 import org.apache.thrift.transport.THttpClient;
 import org.apache.thrift.transport.TTransport;
 import org.spring.boot.thrift.client.transport.TLoadBalancerClient;
-import org.springframework.cloud.sleuth..NewSpan;
-import org.springframework.cloud.sleuth.SpanInjector;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 /**
  * Created by Howell on 17/1/11.
  */
-public class ThriftTransportSpanInjector implements SpanInjector<TTransport> {
+public final class ThriftTransportSpanInjector implements Propagation<TTransport> {
+
 
     @Override
-    public void inject(Span span, TTransport tTransport) {
-        if (tTransport instanceof THttpClient) {
-            ((THttpClient) tTransport).setCustomHeaders(sleuthHeaders(span));
-        } else if (tTransport instanceof TLoadBalancerClient) {
-            ((TLoadBalancerClient) tTransport).setCustomHeaders(sleuthHeaders(span));
-        } else {
-            // ignore
-        }
+    public List<TTransport> keys() {
+        return null;
     }
 
-    private Map<String, String> sleuthHeaders(Span span) {
-        Map<String, String> headers = new HashMap<>();
-        if (span == null) {
-            headers.put(Span.SAMPLED_NAME, Span.SPAN_NOT_SAMPLED);
-        } else {
-            headers.put(Span.TRACE_ID_NAME, Span.idToHex(span.getTraceId()));
-            headers.put(Span.SPAN_NAME_NAME, span.getName());
-            headers.put(Span.SPAN_ID_NAME, Span.idToHex(span.getSpanId()));
-            headers.put(Span.SAMPLED_NAME, span.isExportable() ? Span.SPAN_SAMPLED : Span.SPAN_NOT_SAMPLED);
-            Long parentId = getParentId(span);
-            if (parentId != null) {
-                headers.put(Span.PARENT_ID_NAME, Span.idToHex(parentId));
+    @Override
+    public <C> TraceContext.Injector<C> injector(Setter<C, TTransport> setter) {
+        return null;
+    }
+
+    @Override
+    public <C> TraceContext.Extractor<C> extractor(Getter<C, TTransport> getter) {
+        return null;
+    }
+
+    public interface KeyFactory<K> {
+        Propagation.KeyFactory<String> STRING = new Propagation.KeyFactory<String>() {
+            public String create(String name) {
+                return "thriftTransportSpanInjector";
             }
-            headers.put(Span.PROCESS_ID_NAME, span.getProcessId());
-        }
-        return headers;
+
+            public String toString() {
+                return "StringKeyFactory{}";
+            }
+        };
+        K create(String var1);
     }
 
-    private Long getParentId(Span span) {
-        return !span.getParents().isEmpty() ? span.getParents().get(0) : null;
+    static final class ExtraFieldInjector<C, K> implements TraceContext.Injector<C> {
+        @Override
+        public void inject(TraceContext traceContext, C c) {
+
+        }
     }
 }

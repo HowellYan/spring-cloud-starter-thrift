@@ -1,8 +1,9 @@
 package org.spring.boot.thrift.client.pool;
 
+import brave.Span;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.apache.thrift.TServiceClient;
-import org.springframework.cloud.sleuth.Span;
+
 
 /**
  * Created by Howell on 17/1/11.

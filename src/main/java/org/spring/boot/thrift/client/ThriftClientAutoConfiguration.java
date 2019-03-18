@@ -1,9 +1,9 @@
 package org.spring.boot.thrift.client;
 
+import brave.propagation.Propagation;
 import org.apache.thrift.transport.TTransport;
 import org.spring.boot.thrift.client.sleuth.ThriftTransportSpanInjector;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.cloud.sleuth.SpanInjector;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -15,7 +15,7 @@ public class ThriftClientAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(name = "thriftTransportSpanInjector")
-    SpanInjector<TTransport> thriftTransportSpanInjector() {
+    Propagation<TTransport> thriftTransportSpanInjector() {
         return new ThriftTransportSpanInjector();
     }
 }

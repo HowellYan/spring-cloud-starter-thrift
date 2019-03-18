@@ -1,5 +1,7 @@
 package org.spring.boot.thrift.client;
 
+import brave.Tracer;
+import brave.Tracing;
 import org.apache.commons.pool2.KeyedObjectPool;
 import org.apache.commons.pool2.impl.GenericKeyedObjectPoolConfig;
 import org.apache.thrift.TServiceClient;
@@ -8,13 +10,10 @@ import org.apache.thrift.transport.TTransport;
 import org.spring.boot.thrift.client.pool.ThriftKey;
 import org.spring.boot.thrift.client.pool.ThriftPool;
 import org.spring.boot.thrift.client.pool.ThriftPooledObjectFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
-import org.springframework.cloud.sleuth.SpanInjector;
-import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.cloud.sleuth.autoconfig.TraceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -46,7 +45,8 @@ public class ThriftPoolAutoConfiguration {
     private Tracer tracer;
 
     @Resource
-    private SpanInjector<TTransport> thriftTransportSpanInjector;
+    Tracing tracing;
+
 
     @Bean
     public KeyedObjectPool<ThriftKey, TServiceClient> thriftClientsPool() {
@@ -60,7 +60,7 @@ public class ThriftPoolAutoConfiguration {
         thriftPooledObjectFactory.setPropertyResolver(propertyResolver);
         thriftPooledObjectFactory.setProtocolFactory(protocolFactory);
         thriftPooledObjectFactory.setTracer(tracer);
-        thriftPooledObjectFactory.setSpanInjector(thriftTransportSpanInjector);
+        thriftPooledObjectFactory.setSpanInjector(tracing);
         return new ThriftPool(thriftPooledObjectFactory, poolConfig);
     }
 }

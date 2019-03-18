@@ -1,5 +1,8 @@
 package org.spring.boot.thrift.client.pool;
 
+import brave.Span;
+import brave.Tracer;
+import brave.Tracing;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.pool2.BaseKeyedPooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
@@ -11,9 +14,6 @@ import org.apache.thrift.transport.TTransport;
 import org.spring.boot.thrift.client.transport.TLoadBalancerClient;
 import org.springframework.beans.BeanUtils;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
-import org.springframework.cloud.sleuth.Span;
-import org.springframework.cloud.sleuth.SpanInjector;
-import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.core.env.PropertyResolver;
 
 /**
@@ -29,7 +29,7 @@ public class ThriftPooledObjectFactory extends BaseKeyedPooledObjectFactory<Thri
     private LoadBalancerClient loadBalancerClient;
     private PropertyResolver propertyResolver;
     private Tracer tracer;
-    private SpanInjector<TTransport> spanInjector;
+    private Tracing spanInjector;
 
     public void setProtocolFactory(TProtocolFactory protocolFactory) {
         this.protocolFactory = protocolFactory;
@@ -47,7 +47,7 @@ public class ThriftPooledObjectFactory extends BaseKeyedPooledObjectFactory<Thri
         this.tracer = tracer;
     }
 
-    public void setSpanInjector(SpanInjector<TTransport> spanInjector) {
+    public void setSpanInjector(Tracing spanInjector) {
         this.spanInjector = spanInjector;
     }
 
@@ -56,11 +56,10 @@ public class ThriftPooledObjectFactory extends BaseKeyedPooledObjectFactory<Thri
         super.activateObject(key, p);
 
         ThriftPooledObject<TServiceClient> pooledObject = (ThriftPooledObject<TServiceClient>) p;
-        Span span = this.tracer.createSpan(key.getServiceName());
-        span.logEvent(Span.CLIENT_SEND);
+        Span span = this.tracer.nextSpan().name(key.getServiceName());
         pooledObject.setSpan(span);
         TTransport transport = pooledObject.getObject().getOutputProtocol().getTransport();
-        spanInjector.inject(span, transport);
+        spanInjector.propagation().injector(null).inject(span.context(), transport);
     }
 
     @Override
@@ -73,10 +72,9 @@ public class ThriftPooledObjectFactory extends BaseKeyedPooledObjectFactory<Thri
             ((TLoadBalancerClient) transport).setCustomHeaders(null);
         }
         resetAndClose(p);
-        if (this.tracer.isTracing() && pooledObject.getSpan() != null) {
+        if ( pooledObject.getSpan() != null) {
             Span span = pooledObject.getSpan();
-            span.logEvent(Span.CLIENT_RECV);
-            this.tracer.close(span);
+            span.finish();
         }
 
         super.passivateObject(key, p);
