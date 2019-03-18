@@ -20,6 +20,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.PropertyResolver;
 
+import javax.annotation.Resource;
+
 /**
  * Created by Howell on 17/1/11.
  */
@@ -28,22 +30,22 @@ import org.springframework.core.env.PropertyResolver;
 @ConditionalOnBean(Tracer.class)
 public class ThriftPoolAutoConfiguration {
 
-    @Autowired
+    @Resource
     private TProtocolFactory protocolFactory;
 
-    @Autowired
+    @Resource
     private LoadBalancerClient loadBalancerClient;
 
-    @Autowired
+    @Resource
     private PropertyResolver propertyResolver;
 
     @Value("${thrift.client.max.poolobject:10}")
     private int maxThreads;
 
-    @Autowired
+    @Resource
     private Tracer tracer;
 
-    @Autowired
+    @Resource
     private SpanInjector<TTransport> thriftTransportSpanInjector;
 
     @Bean
