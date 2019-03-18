@@ -2,35 +2,35 @@ package org.spring.boot.thrift.server.interceptor;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-import org.springframework.boot.actuate.metrics.CounterService;
-import org.springframework.boot.actuate.metrics.GaugeService;
+import org.springframework.boot.actuate.health.AbstractHealthIndicator;
+import org.springframework.boot.actuate.health.Health;
+import org.springframework.stereotype.Component;
+
 
 /**
- * Created by Howell on 16/1/11.
+ * Created by Howell on 19/3/18.
+ * 自定义健康端点 继承AbstractHealthIndicator类 也可以实现 HealthIndicator接口的
  */
-public class MetricsThriftMethodInterceptor implements MethodInterceptor {
+@Component
+public class MetricsThriftMethodInterceptor extends AbstractHealthIndicator implements MethodInterceptor {
 
-    private GaugeService gaugeService;
-    private CounterService counterService;
+    Health.Builder builder;
 
-    public MetricsThriftMethodInterceptor(GaugeService gaugeService, CounterService counterService) {
-        this.gaugeService = gaugeService;
-        this.counterService = counterService;
+    @Override
+    protected void doHealthCheck(Health.Builder builder) throws Exception {
+        this.builder = builder;
+        this.builder.withDetail("name","thrift server").up().build();
     }
 
     @Override
-    public Object invoke(MethodInvocation invocation) throws Throwable {
+    public Object invoke(MethodInvocation methodInvocation) throws Throwable {
         long startTime = System.currentTimeMillis();
         try {
-            return invocation.proceed();
+            return methodInvocation.proceed();
         } finally {
             long endTime = System.currentTimeMillis();
-            if (this.counterService != null) {
-                counterService.increment(invocation.getMethod().getName());
-            }
-            if (this.gaugeService != null) {
-                gaugeService.submit("timer.thrift." + invocation.getThis().getClass().getCanonicalName() + "." + invocation.getMethod().getName(), endTime - startTime);
-            }
+            this.builder.withDetail("MethodName", methodInvocation.getMethod().getName())
+                    .withDetail("ClassName", methodInvocation.getThis().getClass().getCanonicalName() + "." + methodInvocation.getMethod().getName() + "." + (endTime - startTime));
         }
     }
 }

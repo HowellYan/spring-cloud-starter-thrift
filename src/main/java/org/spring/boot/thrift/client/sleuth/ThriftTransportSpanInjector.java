@@ -3,7 +3,7 @@ package org.spring.boot.thrift.client.sleuth;
 import org.apache.thrift.transport.THttpClient;
 import org.apache.thrift.transport.TTransport;
 import org.spring.boot.thrift.client.transport.TLoadBalancerClient;
-import org.springframework.cloud.sleuth.Span;
+import org.springframework.cloud.sleuth..NewSpan;
 import org.springframework.cloud.sleuth.SpanInjector;
 
 import java.util.HashMap;

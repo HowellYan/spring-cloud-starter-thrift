@@ -11,18 +11,18 @@ import org.springframework.aop.target.SingletonTargetSource;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.metrics.CounterService;
-import org.springframework.boot.actuate.metrics.GaugeService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.web.servlet.RegistrationBean;
+import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.ClassUtils;
 
+import javax.annotation.Resource;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
@@ -47,19 +47,9 @@ public class ThriftServerAutoConfiguration {
     }
 
     public static class DefaultThriftConfigurer implements ThriftConfigurer {
-
-        @Autowired(required = false)
-        private GaugeService gaugeService;
-
-        @Autowired(required = false)
-        private CounterService counterService;
-
         public void configureProxyFactory(ProxyFactory proxyFactory) {
             proxyFactory.setOptimize(true);
-
-            if (gaugeService != null) {
-                proxyFactory.addAdvice(new MetricsThriftMethodInterceptor(gaugeService, counterService));
-            }
+            proxyFactory.addAdvice(new MetricsThriftMethodInterceptor());
         }
     }
 
@@ -70,18 +60,18 @@ public class ThriftServerAutoConfiguration {
     }
 
     @Configuration
-    public static class Registrar extends RegistrationBean implements ApplicationContextAware {
+    public static class Registrar implements ApplicationContextAware, ServletContextInitializer {
 
         private ApplicationContext applicationContext;
 
-        @Autowired
+        @Resource
         private TProtocolFactory protocolFactory;
 
-        @Autowired
+        @Resource
         private ThriftConfigurer thriftConfigurer;
 
         @Override
-        public void onStartup(ServletContext servletContext) throws ServletException {
+        public void onStartup(ServletContext servletContext) {
             String[] beans = applicationContext.getBeanNamesForAnnotation(ThriftServer.class);
             for (String beanName : beans) {
                 ThriftServer annotation = applicationContext.findAnnotationOnBean(beanName, ThriftServer.class);
